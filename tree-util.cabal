@@ -1,0 +1,33 @@
+name:                tree-util
+version:             0.2.0.0
+synopsis:            Tree Utils
+description:         Additional functions for Data.Tree
+homepage:            https://github.com/jcristovao/tree-util
+license:             BSD3
+license-file:        LICENSE
+author:              João Cristóvão
+maintainer:          jmacristovao@gmail.com
+-- copyright:           
+category:            Data
+build-type:          Simple
+-- extra-source-files:  
+cabal-version:       >=1.16
+
+library
+  exposed-modules:    Data.Tree.Util
+  build-depends:      base >=4.6 && <4.7
+                    , containers >=0.5 && <0.6
+  hs-source-dirs:     src
+  default-language:   Haskell2010
+
+test-suite test
+  type:               exitcode-stdio-1.0
+  main-is:            main.hs
+  hs-source-dirs:     src, test
+  build-depends:      base >=4.6 && <4.7
+                    , containers >=0.5 && <0.6
+                    , hspec >=1.7.2
+                    , HUnit >=1.2.5.2
+                    , QuickCheck >= 2.6
+                    , quickcheck-instances >= 0.3.6
+  default-language:   Haskell2010
