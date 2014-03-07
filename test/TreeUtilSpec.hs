@@ -78,22 +78,13 @@ spec = do
       {-filter (== 3) bigTree `shouldBe` Node 0 [ Node 2 [ Node 4 [ Node 3 []]]]-}
       {-filter (== 1) wrongTree `shouldBe` wrongTree-}
 
-    it "filterSub" $ do
-      {-filterSub (==3) bigTree-}
-        {-`shouldBe` Node 0 [ Node 2 [ Node 4 [ Node 3 []]]]-}
-      filterSub (== 0) bigTree `shouldBe` Just (Node 0 [])
-      filterSub (/= 2) bigTree `shouldBe` Just (Node 0 [Node 1 [Node 5 []]])
-      filterSub (== 1) bigTree `shouldBe` Nothing -- Node 0 [Node 1 []]
-      {-filterSub (== 9) bigTree `shouldBe` Node 0 []-}
-      {-filterSub (== 5) bigTree `shouldBe` Node 0 [Node 2 [Node 5 []]-}
-                                                 {-,Node 1 [ Node 5 []]]-}
+    {-it "filterSub" $ do-}
+      {-filterSub (== 0) bigTree `shouldBe` Just (Node 0 [])-}
+      {-filterSub (/= 2) bigTree `shouldBe` Just (Node 0 [Node 1 [Node 5 []]])-}
+      {-filterSub (== 1) bigTree `shouldBe` Nothing -- Node 0 [Node 1 []]-}
 
-      {-filterSub (== 3) bigTree `shouldBe` Node 0 [ Node 2 [ Node 4 [ Node 3 []]]]-}
-
-      {-filterSub (== 1) bigTree `shouldBe` Node 0 [Node 1 []]-}
-
-    it "filterSub vs filterPruneTree" . property
-      $ \(tr :: Tree Int) -> filterSub (==0) tr == filterPruneTree (== 0) tr
+    {-it "filterSub vs filterPruneTree" . property-}
+      {-$ \(tr :: Tree Int) -> filterSub (==0) tr == filterPruneTree (== 0) tr-}
 
     it "size" . property
       $ \(tr :: Tree Int) -> size tr == (L.length . flatten $ tr)

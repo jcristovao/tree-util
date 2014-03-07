@@ -7,7 +7,8 @@ module Data.Tree.Util
   , lookupTreeInForestBy
   , filter
   , filterPruneTree
-  , filterSub
+  , filterPruneSub
+  , treeAny
   , size
   , maxDepth
   , prune
@@ -81,15 +82,13 @@ filterPruneForest :: (a -> Bool) -> Forest a -> Forest a
 filterPruneForest = mapMaybe . filterPruneTree
 
 -- | remove all subtrees whose nodes do not fulfill predicate
-filterSub :: (a -> Bool) -> Tree a -> Maybe (Tree a)
-filterSub f (Node x ns)
-  | f x = Just.  Node x $
-                 (mapMaybe (filterSub f) $ L.filter (treeany f) ns)
-  | otherwise = Nothing
+filterPruneSub :: (a -> Bool) -> Tree a -> Tree a
+filterPruneSub f (Node x ns) =
+  Node x . map (filterPruneSub f) . L.filter (treeAny f) $ ns
 
 -- | is predicate true in any node of tree ?
-treeany :: (a -> Bool) -> Tree a -> Bool
-treeany f t = f (rootLabel t) || any (treeany f) (subForest t)
+treeAny :: (a -> Bool) -> Tree a -> Bool
+treeAny f t = f (rootLabel t) || any (treeAny f) (subForest t)
 
 mirror :: Tree a -> Tree a
 mirror (Node a ts) = Node a . reverse $ map mirror ts
