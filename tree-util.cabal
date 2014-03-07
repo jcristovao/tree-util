@@ -1,5 +1,5 @@
 name:                tree-util
-version:             0.2.0.0
+version:             0.3.0.0
 synopsis:            Tree Utils
 description:         Additional functions for Data.Tree
 homepage:            https://github.com/jcristovao/tree-util
