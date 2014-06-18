@@ -46,6 +46,7 @@ testNode f (Node x _) = f x
 
 {-# ANN spec ("HLint: ignore Redundant do"::String) #-}
 {-# ANN spec ("HLint: ignore Use mappend"::String) #-}
+{-# ANN spec ("HLint: ignore Use elem"::String) #-}
 spec :: Spec
 spec = do
 ------------------------------------------------------------------------------
@@ -149,7 +150,3 @@ spec = do
         Forest.lookupTreeInForestBy (==i) (subForest tr)
           == (L.find ((== i) . rootLabel) . concat. fmap (flatten . cojoin)) (subForest tr)
 
-    it "filterPruneTree vs filterPruneSub" . property
-      $ \(tr :: Tree Int, i :: Int) ->
-        mapForest (Forest.filterPruneForest (==i)) tr
-          == filterPruneSub (==i) tr

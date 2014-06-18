@@ -34,11 +34,8 @@ module Data.Tree
   , unfoldTreeM_BF
   , lookupTree
   , lookupTreeBy
-  , filter
   , filterPruneTree
   , filterGraftTree
-  , filterPruneSub
-  , treeAny
   , size
   , maxDepth
   , prune
@@ -48,7 +45,6 @@ module Data.Tree
 
 import Prelude hiding (filter)
 import Data.Tree.Internal
-import qualified Data.List as L
 import qualified Data.Foldable as F
 import Data.Monoid
 
@@ -75,10 +71,6 @@ subTreesByLevel :: Tree a -> [[Tree a]]
 subTreesByLevel t = takeWhile (not . null) $
                     iterate (concatMap subForest) [t]
 
-dropSubTree :: (a -> Bool) -> Tree a -> Tree a
-dropSubTree _ (Node x [])  = Node x []
-{-dropSubTree f (Node x sub) = -}
-
 size :: Tree a -> Int
 size = getSum . F.foldMap (const $ Sum 1)
 
@@ -87,35 +79,28 @@ maxDepth :: Tree a -> Int
 maxDepth (Node _ []) = 1
 maxDepth (Node _ fr) = 1 + maximum (map maxDepth fr)
 
--- |
-foldTree :: (a -> [b] -> b) -> Tree a -> b
-foldTree f (Node a ts) = f a (map (foldTree f) ts)
-
-filter :: (a -> Bool) -> Tree a -> Tree a
-filter p = foldTree f
-    where f a ts = Node a (L.filter (p . rootLabel) ts)
-
--- | remove all subtrees whose nodes do not fulfill predicate
-filterPruneSub :: (a -> Bool) -> Tree a -> Tree a
-filterPruneSub f (Node x ns) =
-  Node x . map (filterPruneSub f) . L.filter (treeAny f) $ ns
-
--- | is predicate true in any node of tree ?
-treeAny :: (a -> Bool) -> Tree a -> Bool
-treeAny f t = f (rootLabel t) || any (treeAny f) (subForest t)
-
 mirror :: Tree a -> Tree a
 mirror (Node a ts) = Node a . reverse $ map mirror ts
-
--- | remove all nodes past a certain depth
-prune :: Int -> Tree a -> Tree a
-prune 0 t = Node (rootLabel t) []
-prune d t = Node (rootLabel t) (map (prune $ d-1) $ subForest t)
 
 -- Ross Paterson suggestions -------------------------------------------------
 
 -- | Label each node of the tree with its full subtree.
 cojoin :: Tree a -> Tree (Tree a)
 cojoin t@(Node _ ts) = Node t (map cojoin ts)
+
+-- | remove all nodes past a certain depth
+prune :: Int -> Tree a -> Tree a
+prune 0 t = Node (rootLabel t) []
+prune d t = Node (rootLabel t) (map (prune $ d-1) $ subForest t)
+
+-- My stupid functions -----------------------------------------------------
+
+dropSubTree :: (a -> Bool) -> Tree a -> Tree a
+dropSubTree _ (Node x [])  = Node x []
+{-dropSubTree f (Node x sub) = -}
+
+-- |
+foldTree :: (a -> [b] -> b) -> Tree a -> b
+foldTree f (Node a ts) = f a (map (foldTree f) ts)
 
 
