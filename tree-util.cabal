@@ -30,7 +30,7 @@ library
   include-dirs:       src/include
 
   exposed-modules:    Data.Tree
-                      --Data.Tree.Forest
+                      Data.Tree.Forest
   other-modules:      Data.Tree.Internal
   build-depends:      base          >=4.6 && < 4.8
                     , deepseq       >=1.2 && < 5.0
