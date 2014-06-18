@@ -35,6 +35,15 @@ instance CoArbitrary a => CoArbitrary (Tree.Tree a) where
     coarbitrary (Tree.Node val forest) =
         coarbitrary val . coarbitrary forest
 
+mapNode :: (a -> a) -> Tree a -> Tree a
+mapNode f (Node x ts) = Node (f x) ts
+
+mapForest :: (Forest a -> Forest a) -> Tree a -> Tree a
+mapForest f (Node x ts) = Node x (f ts)
+
+testNode :: (a -> Bool) -> Tree a -> Bool
+testNode f (Node x _) = f x
+
 {-# ANN spec ("HLint: ignore Redundant do"::String) #-}
 {-# ANN spec ("HLint: ignore Use mappend"::String) #-}
 spec :: Spec
@@ -115,3 +124,32 @@ spec = do
     it "prune" . property $
       \(tr :: Tree Int,mx :: Positive Int) -> maxDepth (prune (getPositive mx) tr)
                                               <= getPositive mx + 1
+
+    it "subTrees vs flatten . cojoin" . property
+      $ \(tr :: Tree Int) -> subTrees tr == (flatten . cojoin) tr
+
+    it "subTreesByLevel vs levels . cojoin" . property
+      $ \(tr :: Tree Int) -> subTreesByLevel tr == (levels . cojoin) tr
+
+    it "lookupTree vs L.find . flatten . cojoin" . property
+      $ \(tr :: Tree Int, i :: Int) ->
+        lookupTree i tr == (L.find ((== i) . rootLabel) . flatten . cojoin) tr
+
+    it "lookupTreeBy vs L.find . flatten . cojoin" . property
+      $ \(tr :: Tree Int, i :: Int) ->
+        lookupTreeBy (==i) tr == (L.find ((==i) . rootLabel) . flatten . cojoin) tr
+
+    it "lookupTreeInForest vs L.find . concat . fmap (flatten . cojoin)" . property
+      $ \(tr :: Tree Int, i :: Int) ->
+        Forest.lookupTreeInForest i (subForest tr)
+          == (L.find ((== i) . rootLabel) . concat. fmap (flatten . cojoin)) (subForest tr)
+
+    it "lookupTreeInForestBy vs L.find . concat . fmap (flatten . cojoin)" . property
+      $ \(tr :: Tree Int, i :: Int) ->
+        Forest.lookupTreeInForestBy (==i) (subForest tr)
+          == (L.find ((== i) . rootLabel) . concat. fmap (flatten . cojoin)) (subForest tr)
+
+    it "filterPruneTree vs filterPruneSub" . property
+      $ \(tr :: Tree Int, i :: Int) ->
+        mapForest (Forest.filterPruneForest (==i)) tr
+          == filterPruneSub (==i) tr

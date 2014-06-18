@@ -29,6 +29,7 @@ module Data.Tree.Forest
   , unfoldForestM_BF
   , lookupTreeInForest
   , lookupTreeInForestBy
+  , filterPruneForest
   ) where
 
 import Data.Tree.Internal

@@ -26,7 +26,9 @@ module Data.Tree
   , drawTree
   , draw
   , flatten
+  , subTrees
   , levels
+  , subTreesByLevel
   , unfoldTree
   , unfoldTreeM
   , unfoldTreeM_BF
@@ -34,12 +36,14 @@ module Data.Tree
   , lookupTreeBy
   , filter
   , filterPruneTree
+  , filterGraftTree
   , filterPruneSub
   , treeAny
   , size
   , maxDepth
   , prune
   , mirror
+  , cojoin
   ) where
 
 import Prelude hiding (filter)
@@ -53,12 +57,23 @@ flatten :: Tree a -> [a]
 flatten t = squish t []
   where squish (Node x ts) xs = x:Prelude.foldr squish xs ts
 
+-- | List of subtrees (including the tree itself), in pre-order.
+subTrees :: Tree a -> [Tree a]
+subTrees t = squish t []
+  where squish tr@(Node _ ts) xs = tr:Prelude.foldr squish xs ts
+
+
 -- | Lists of nodes at each level of the tree.
 levels :: Tree a -> [[a]]
 levels t =
     map (map rootLabel) $
         takeWhile (not . null) $
         iterate (concatMap subForest) [t]
+
+-- | List of subtrees at each level of the tree.
+subTreesByLevel :: Tree a -> [[Tree a]]
+subTreesByLevel t = takeWhile (not . null) $
+                    iterate (concatMap subForest) [t]
 
 dropSubTree :: (a -> Bool) -> Tree a -> Tree a
 dropSubTree _ (Node x [])  = Node x []
@@ -72,6 +87,7 @@ maxDepth :: Tree a -> Int
 maxDepth (Node _ []) = 1
 maxDepth (Node _ fr) = 1 + maximum (map maxDepth fr)
 
+-- |
 foldTree :: (a -> [b] -> b) -> Tree a -> b
 foldTree f (Node a ts) = f a (map (foldTree f) ts)
 
@@ -95,3 +111,11 @@ mirror (Node a ts) = Node a . reverse $ map mirror ts
 prune :: Int -> Tree a -> Tree a
 prune 0 t = Node (rootLabel t) []
 prune d t = Node (rootLabel t) (map (prune $ d-1) $ subForest t)
+
+-- Ross Paterson suggestions -------------------------------------------------
+
+-- | Label each node of the tree with its full subtree.
+cojoin :: Tree a -> Tree (Tree a)
+cojoin t@(Node _ ts) = Node t (map cojoin ts)
+
+

@@ -28,7 +28,8 @@ module Data.Tree.Internal(
     unfoldTreeM, unfoldForestM,
     unfoldTreeM_BF, unfoldForestM_BF,
     lookupTree, lookupTreeBy, lookupTreeInForest, lookupTreeInForestBy,
-    filterPruneTree, filterPruneForest
+    filterPruneTree, filterPruneForest,
+    filterGraftTree, filterGraftForest
     ) where
 
 import Control.Applicative (Applicative(..), (<$>))
@@ -153,6 +154,16 @@ unfoldForestQ f aQ = case viewl aQ of
     splitOnto as (_:bs) q = case viewr q of
         q' :> a -> splitOnto (a:as) bs q'
         EmptyR -> error "unfoldForestQ"
+
+-- | Remove nodes that do not match, and graft the children of the
+-- removed node onto the tree in place of the parent.
+filterGraftTree :: (a -> Bool) -> Tree a -> Forest a
+filterGraftTree p (Node x ns)
+  | p x = [Node x $ filterGraftForest p ns]
+  | otherwise = filterGraftForest p ns
+
+filterGraftForest :: (a -> Bool) -> Forest a -> Forest a
+filterGraftForest = concatMap . filterGraftTree
 
 -- | Prune every subtree whose root label does not match.
 filterPruneTree :: (a -> Bool) -> Tree a -> Maybe (Tree a)
