@@ -1,5 +1,5 @@
 name:                tree-util
-version:             0.3.1.1
+version:             0.4
 synopsis:            Tree Utils
 description:         Additional functions for Data.Tree
 homepage:            https://github.com/jcristovao/tree-util
@@ -12,20 +12,39 @@ category:            Data
 build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.16
+extra-source-files:
+    include/Typeable.h
 
 library
-  exposed-modules:    Data.Tree.Util
-  build-depends:      base          >=4.6 && < 4.8
-                    , containers    >=0.5 && < 0.6
-  hs-source-dirs:     src
+  if impl(ghc>=6.10)
+       build-depends: ghc-prim
+
+  ghc-options: -O2 -Wall
   default-language:   Haskell2010
+  if impl(ghc<7.0)
+       extensions: MagicHash, DeriveDataTypeable, StandaloneDeriving, Rank2Types
+  if impl(ghc >= 7.8)
+       extensions: RoleAnnotations
+
+  hs-source-dirs:     src
+  include-dirs:       src/include
+
+  exposed-modules:    Data.Tree
+                      --Data.Tree.Forest
+  other-modules:      Data.Tree.Internal
+  build-depends:      base          >=4.6 && < 4.8
+                    , deepseq       >=1.2 && < 5.0
+                    , containers    >=0.5 && < 0.6
+
 
 test-suite test
   type:               exitcode-stdio-1.0
   main-is:            main.hs
   hs-source-dirs:     src, test
+  include-dirs:       src/include
   build-depends:      base                >=4.6 && < 4.8
                     , containers          >=0.5 && < 0.6
+                    , deepseq       >=1.2 && < 5.0
                     , hspec               >=1.7.2
                     , HUnit               >=1.2.5.2
                     , QuickCheck          >= 2.6
