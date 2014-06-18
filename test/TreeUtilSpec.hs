@@ -8,13 +8,32 @@ module TreeUtilSpec (spec) where
 
 import Test.Hspec
 import Test.QuickCheck
-import Test.QuickCheck.Instances ()
+-- import Test.QuickCheck.Instances ()
 
+import Control.Applicative
 import Prelude hiding (length, filter)
 import qualified Data.List as L
 import Data.Tree
-import Data.Tree.Util
+import qualified Data.Tree        as Tree
+import qualified Data.Tree.Forest as Forest
 
+instance Arbitrary a => Arbitrary (Tree.Tree a) where
+    arbitrary = sized $ \n ->
+      do val <- arbitrary
+         let n' = n `div` 2
+         nodes <-
+             if n' > 0
+              then do
+                k <- choose (0,n')
+                resize n' $ sequence [ arbitrary | _ <- [1..k] ]
+              else return []
+         return $ Tree.Node val nodes
+    shrink (Tree.Node val forest) =
+        Tree.Node <$> shrink val <*> shrink forest
+
+instance CoArbitrary a => CoArbitrary (Tree.Tree a) where
+    coarbitrary (Tree.Node val forest) =
+        coarbitrary val . coarbitrary forest
 
 {-# ANN spec ("HLint: ignore Redundant do"::String) #-}
 {-# ANN spec ("HLint: ignore Use mappend"::String) #-}
