@@ -174,27 +174,50 @@ filterPruneTree p (Node x ns)
 filterPruneForest :: (a -> Bool) -> Forest a -> Forest a
 filterPruneForest = mapMaybe . filterPruneTree
 
--- | get the sub-tree rooted at the first (left-most, depth-first) occurrence
+-- | Get the sub-tree rooted at the first (left-most, depth-first) occurrence
 -- of the specified node value
+--
+--  For other traversal strategies, consider the following definition
+--
+-- > lookupTree i = (Data.List.find ((==i) . rootLabel) . flatten . cojoin
 lookupTree :: Eq a => a -> Tree a -> Maybe (Tree a)
 lookupTree v t
     | rootLabel t == v = Just t
     | otherwise = lookupTreeInForest v $ subForest t
 
+-- | Get the sub-tree rooted at the first (left-most, depth-first) node that
+-- fulfils the given condition.
+--
+--  For other traversal strategies, consider the following definition
+--
+-- > lookupTreeBy f = (Data.List.find (f . rootLabel) . flatten . cojoin
 lookupTreeBy :: (a -> Bool) -> Tree a -> Maybe (Tree a)
 lookupTreeBy f t
   | f (rootLabel t) = Just t
   | otherwise       = lookupTreeInForestBy f $ subForest t
 
--- | get the sub-tree for the specified node value in the first tree in
+-- | Get the sub-tree for the specified node value in the first tree in
 -- forest in which it occurs.
-lookupTreeInForest :: Eq a => a -> [Tree a] -> Maybe (Tree a)
+--
+--  For other traversal strategies, consider the following definition:
+--
+-- > lookupTreeInForest i = (Data.List.find ((==i) . rootLabel)
+-- >                        . concat . fmap (flatten . cojoin)
+lookupTreeInForest :: Eq a => a -> Forest a -> Maybe (Tree a)
 lookupTreeInForest _ [] = Nothing
 lookupTreeInForest v (t:ts) = case lookupTree v t of
                              Just t' -> Just t'
                              Nothing -> lookupTreeInForest v ts
 
-lookupTreeInForestBy :: (a -> Bool) -> [Tree a] -> Maybe (Tree a)
+-- | Get the sub-tree in the first tree in forest in which the given condition
+-- is fulfiled.
+--
+--  For other traversal strategies, consider the following definition:
+--
+-- > lookupTreeInForest f = (Data.List.find (f . rootLabel)
+-- >                        . concat . fmap (flatten . cojoin)
+
+lookupTreeInForestBy :: (a -> Bool) -> Forest a -> Maybe (Tree a)
 lookupTreeInForestBy _ [] = Nothing
 lookupTreeInForestBy f (t:ts) = case lookupTreeBy f t of
                              Just t' -> Just t'

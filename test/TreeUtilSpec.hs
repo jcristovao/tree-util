@@ -60,6 +60,10 @@ spec = do
                          ]
         tree5   = Node 5 []
         tree6   = Node 6 []
+        rosTree = Node 1 [ Node 2 [ Node 4 [Node 7 []]
+                                  , Node 5 [] ]
+                         , Node 3 [Node 6 [Node 8 [], Node 9 []]]
+                         ]
 
     it "mirror" $ do
       mirror bigTree `shouldBe` Node 0 [ Node 1 [ Node 5 []]
@@ -67,6 +71,14 @@ spec = do
                                                 , Node 5 [ Node 6 []]
                                                 ]
                                        ]
+    it "flatten pre-order" $ do
+      flatten rosTree `shouldBe`          [1,2,4,7,5,3,6,8,9]
+
+    it "flatten post-order" $ do
+      flattenPostOrder rosTree `shouldBe` [7,4,5,2,8,9,6,3,1]
+
+    it "size" $ do
+      size bigTree `shouldBe` 8
 
     it "lookupTreeBy" $ do
       lookupTreeBy (==5) tree5   `shouldBe` Just (Node 5 [])
@@ -97,23 +109,6 @@ spec = do
 
     it "lookupTree vs lookupTreeBy" . property
       $ \(tr :: Tree Int) -> lookupTree 0 tr == lookupTreeBy (==0) tr
-
-    {-it "filter" $ do-}
-      {-filter (== 0) bigTree `shouldBe` Node 0 []-}
-      {-filter (/= 2) bigTree `shouldBe` Node 0 [Node 1 [Node 5 []]]-}
-      {-filter (== 1) bigTree `shouldBe` Node 0 [Node 1 []]-}
-      {-filter (== 9) bigTree `shouldBe` Node 0 []-}
-      {-filter (== 5) bigTree `shouldBe` Node 0 [ Node 1 [ Node 5 []]]-}
-      {-filter (== 3) bigTree `shouldBe` Node 0 [ Node 2 [ Node 4 [ Node 3 []]]]-}
-      {-filter (== 1) wrongTree `shouldBe` wrongTree-}
-
-    {-it "filterSub" $ do-}
-      {-filterSub (== 0) bigTree `shouldBe` Just (Node 0 [])-}
-      {-filterSub (/= 2) bigTree `shouldBe` Just (Node 0 [Node 1 [Node 5 []]])-}
-      {-filterSub (== 1) bigTree `shouldBe` Nothing -- Node 0 [Node 1 []]-}
-
-    {-it "filterSub vs filterPruneTree" . property-}
-      {-$ \(tr :: Tree Int) -> filterSub (==0) tr == filterPruneTree (== 0) tr-}
 
     it "size" . property
       $ \(tr :: Tree Int) -> size tr == (L.length . flatten $ tr)

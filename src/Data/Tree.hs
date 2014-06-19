@@ -26,6 +26,7 @@ module Data.Tree
   , drawTree
   , draw
   , flatten
+  , flattenPostOrder
   , subTrees
   , levels
   , subTreesByLevel
@@ -47,13 +48,29 @@ import Prelude hiding (filter)
 import Data.Tree.Internal
 import qualified Data.Foldable as F
 import Data.Monoid
+import qualified Data.Sequence as Seq
 
 -- | The elements of a tree in pre-order.
+{-# INLINE flatten #-}
 flatten :: Tree a -> [a]
 flatten t = squish t []
   where squish (Node x ts) xs = x:Prelude.foldr squish xs ts
 
+-- | The elements of the tree in post-order
+--
+flattenPostOrder  :: Tree a -> [a]
+flattenPostOrder  = squish []
+  where squish xs (Node x ts) = Prelude.foldl squish xs ts ++ [x]
+
+
 -- | List of subtrees (including the tree itself), in pre-order.
+--
+-- > subTrees = flatten . cojoin
+--
+-- For post-order:
+--
+-- > subtreesPostOrder = flattenPostOrder . cojoin
+--
 subTrees :: Tree a -> [Tree a]
 subTrees t = squish t []
   where squish tr@(Node _ ts) xs = tr:Prelude.foldr squish xs ts
@@ -67,40 +84,40 @@ levels t =
         iterate (concatMap subForest) [t]
 
 -- | List of subtrees at each level of the tree.
+--
+-- > subTreesByLevel = levels . cojoin
+--
 subTreesByLevel :: Tree a -> [[Tree a]]
 subTreesByLevel t = takeWhile (not . null) $
                     iterate (concatMap subForest) [t]
 
+-- | Number of nodes on the three
 size :: Tree a -> Int
 size = getSum . F.foldMap (const $ Sum 1)
 
--- https://stackoverflow.com/questions/21205213/haskell-tail-recursion-version-of-depth-of-binary-tree
+-- | Maximum depth of tree
 maxDepth :: Tree a -> Int
 maxDepth (Node _ []) = 1
 maxDepth (Node _ fr) = 1 + maximum (map maxDepth fr)
+-- https://stackoverflow.com/questions/21205213/haskell-tail-recursion-version-of-depth-of-binary-tree
 
+-- | Reverse every forest within the three
 mirror :: Tree a -> Tree a
 mirror (Node a ts) = Node a . reverse $ map mirror ts
-
--- Ross Paterson suggestions -------------------------------------------------
-
--- | Label each node of the tree with its full subtree.
-cojoin :: Tree a -> Tree (Tree a)
-cojoin t@(Node _ ts) = Node t (map cojoin ts)
 
 -- | remove all nodes past a certain depth
 prune :: Int -> Tree a -> Tree a
 prune 0 t = Node (rootLabel t) []
 prune d t = Node (rootLabel t) (map (prune $ d-1) $ subForest t)
 
--- My stupid functions -----------------------------------------------------
 
-dropSubTree :: (a -> Bool) -> Tree a -> Tree a
-dropSubTree _ (Node x [])  = Node x []
-{-dropSubTree f (Node x sub) = -}
+-- Ross Paterson suggestions -------------------------------------------------
 
--- |
-foldTree :: (a -> [b] -> b) -> Tree a -> b
-foldTree f (Node a ts) = f a (map (foldTree f) ts)
+-- | Label each node of the tree with its full subtree.
+--
+-- This is the @'duplicate'@ function from the @Tree Comonad@.
+{-# INLINE cojoin #-}
+cojoin :: Tree a -> Tree (Tree a)
+cojoin t@(Node _ ts) = Node t (map cojoin ts)
 
 
